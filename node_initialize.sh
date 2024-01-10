@@ -1,35 +1,43 @@
 #!/usr/bin/env bash
+CONFIG_FILE="/root/.neoxacore/neoxa.conf"
+url_array=(
+    "https://api4.my-ip.io/ip"
+    "https://checkip.amazonaws.com"
+    "https://api.ipify.org"
+)
 
 function get_ip() {
-    WANIP=$(curl --silent -m 15 https://api4.my-ip.io/ip | tr -dc '[:alnum:].')
-    if [[ "$WANIP" == "" || "$WANIP" = *htmlhead* ]]; then
-        WANIP=$(curl --silent -m 15 https://checkip.amazonaws.com | tr -dc '[:alnum:].')    
-    fi  
-    if [[ "$WANIP" == "" || "$WANIP" = *htmlhead* ]]; then
-        WANIP=$(curl --silent -m 15 https://api.ipify.org | tr -dc '[:alnum:].')
-    fi
+    for url in "$@"; do
+        WANIP=$(curl --silent -m 15 "$url" | tr -dc '[:alnum:].')
+        # Remove dots from the IP address
+        IP_NO_DOTS=$(echo "$WANIP" | tr -d '.')
+        # Check if the result is a valid number
+        if [[ "$IP_NO_DOTS" != "" && "$IP_NO_DOTS" =~ ^[0-9]+$ ]]; then
+            break
+        fi
+    done
 }
 
-get_ip
-RPCUSER=$(pwgen -1 8 -n)
-PASSWORD=$(pwgen -1 20 -n)
-
-if [[ -f /root/.neoxacore/neoxa.conf ]]; then
-  rm  /root/.neoxacore/neoxa.conf
+if [[ ! -f $CONFIG_FILE ]]; then
+    get_ip "${url_array[@]}"
+    RPCUSER=$(pwgen -1 18 -n)
+    PASSWORD=$(pwgen -1 20 -n)
+    echo "rpcuser=$RPCUSER" >> $CONFIG_FILE
+    echo "rpcpassword=$PASSWORD" >> $CONFIG_FILE
+    echo "rpcallowip=127.0.0.1" >> $CONFIG_FILE
+    echo "listen=1" >> $CONFIG_FILE
+    echo "server=1" >> $CONFIG_FILE
+    echo "daemon=1" >> $CONFIG_FILE
+    echo "logtimestamps=1" >> $CONFIG_FILE
+    echo "externalip=$WANIP:8788" >> $CONFIG_FILE
+    echo "smartnodeblsprivkey=$KEY" >> $CONFIG_FILE
 fi
 
-touch /root/.neoxacore/neoxa.conf
-cat << EOF > /root/.neoxacore/neoxa.conf
-rpcuser=$RPCUSER
-rpcpassword=$PASSWORD
-rpcallowip=127.0.0.1
-listen=1
-server=1
-daemon=1
-logtimestamps=1
-externalip=$WANIP:8788
-smartnodeblsprivkey=$KEY
-EOF
+if [[ "$KEY" != "" ]]; then 
+    if grep -q "^smartnodeblsprivkey=$" $CONFIG_FILE; then
+        sed -i "s/^smartnodeblsprivkey=$/smartnodeblsprivkey=$KEY/" $CONFIG_FILE
+    fi
+fi
 
 while true; do
  if [[ $(pgrep neoxad) == "" ]]; then 
