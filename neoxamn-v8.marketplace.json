@@ -1,0 +1,45 @@
+{
+  "description": "Host your Neoxa Smartnode on the Flux Network (HA: 2 redundant nodes with automatic failover). Collateral: 1,000,000 NEOX.",
+  "priceUSD": 7,
+  "category": "Masternode",
+  "version": 8,
+  "name": "NeoxaMN",
+  "instances": 2,
+  "staticip": true,
+  "compose": [
+    {
+      "name": "node",
+      "description": "The Neoxa Smartnode container",
+      "repotag": "runonflux/neoxanode:latest",
+      "containerPorts": [
+        8788
+      ],
+      "domains": [
+        ""
+      ],
+      "environmentParameters": [],
+      "commands": [],
+      "containerData": "/root/.neoxacore",
+      "cpu": 2,
+      "ram": 4000,
+      "hdd": 40,
+      "ports": [
+        8788
+      ],
+      "userEnvironmentParameters": [
+        {
+          "name": "KEY",
+          "description": "Smartnode operator BLS private key",
+          "placeholder": "Enter your operator BLS private key"
+        },
+        {
+          "name": "PROTXHASH",
+          "description": "Your smartnode registration hash (proTxHash). Enables automatic on-chain IP updates so the node is never PoSe-banned after a relocation.",
+          "placeholder": "Enter your proTxHash"
+        }
+      ]
+    }
+  ],
+  "visible": true,
+  "enabled": true
+}
