@@ -10,7 +10,7 @@
     {
       "name": "node",
       "description": "The Neoxa Smartnode container",
-      "repotag": "runonflux/neoxanode:latest",
+      "repotag": "runonflux/neoxa-node:latest",
       "containerPorts": [
         8788
       ],
